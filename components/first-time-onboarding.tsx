@@ -1,11 +1,9 @@
 "use client"
 
-import Image, { type StaticImageData } from "next/image"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { TradeKeysLogo } from "@/components/tradekeys-logo"
 import { UiIcon } from "@/components/ui-icon"
-import accessScreen from "@/ui/onboarding/screen(1).png"
 import styles from "./first-time-onboarding.module.css"
 
 const ONBOARDING_STORAGE_KEY = "tradekeys.onboarding.v1.dismissed"
@@ -16,7 +14,7 @@ type OnboardingStep = {
   title: string
   summary: string
   bullets: string[]
-  image: string | StaticImageData
+  image: string
   imageLabel: string
   accent: "primary" | "secondary"
   footer?: string
@@ -50,7 +48,7 @@ const STEPS: OnboardingStep[] = [
       "Buys and sells move price because the bonding curve reacts to supply.",
       "Discovery comes from terminal context, but execution still uses the live quote before you sign.",
     ],
-    image: accessScreen,
+    image: "/onboarding/access-screen.png",
     imageLabel: "TradeKeys watchlist and key access context",
     accent: "secondary",
     footer:
@@ -235,25 +233,13 @@ export function FirstTimeOnboarding() {
                   isWelcomeVisual ? styles.visualImageWrapWelcome : ""
                 }`}
               >
-                {typeof step.image === "string" ? (
-                  <img
-                    src={step.image}
-                    alt={step.imageLabel}
-                    className={`${styles.visualImage} ${
-                      isWelcomeVisual ? styles.visualImageWelcome : ""
-                    }`}
-                  />
-                ) : (
-                  <Image
-                    src={step.image}
-                    alt={step.imageLabel}
-                    className={`${styles.visualImage} ${
-                      isWelcomeVisual ? styles.visualImageWelcome : ""
-                    }`}
-                    placeholder="blur"
-                    priority={stepIndex === 0}
-                  />
-                )}
+                <img
+                  src={step.image}
+                  alt={step.imageLabel}
+                  className={`${styles.visualImage} ${
+                    isWelcomeVisual ? styles.visualImageWelcome : ""
+                  }`}
+                />
               </div>
               <div className={styles.visualFooter}>
                 <span>{step.footer}</span>
