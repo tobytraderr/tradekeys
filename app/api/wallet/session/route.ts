@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { account?: string } | null
 
   try {
-    const challenge = createWalletChallenge(request, body?.account?.trim() ?? "")
+    const challenge = await createWalletChallenge(request, body?.account?.trim() ?? "")
     return NextResponse.json(challenge, { headers: { "Cache-Control": "no-store" } })
   } catch (error) {
     return buildWalletSessionErrorResponse(
