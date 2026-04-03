@@ -8,23 +8,46 @@ import type { TwinSummary } from "@/lib/types"
 import styles from "./topbar.module.css"
 
 type Props = {
-  totalTwins: number
+  initialTotalTwins: number
 }
 
 type SearchResponse = {
   results: TwinSummary[]
 }
 
-export function TopbarClient({ totalTwins }: Props) {
+export function TopbarClient({ initialTotalTwins }: Props) {
   const router = useRouter()
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const [totalTwins, setTotalTwins] = useState(initialTotalTwins)
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<TwinSummary[]>([])
   const [open, setOpen] = useState(false)
   const [searching, setSearching] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const deferredQuery = useDeferredValue(query)
+
+  useEffect(() => {
+    let cancelled = false
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/app-meta", {
+          cache: "no-store",
+        })
+        const payload = (await response.json()) as { totalTwins?: number }
+        if (!cancelled && response.ok && typeof payload.totalTwins === "number") {
+          setTotalTwins(payload.totalTwins)
+        }
+      } catch {
+        // keep initial fallback
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (!deferredQuery.trim()) {
