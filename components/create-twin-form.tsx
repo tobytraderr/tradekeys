@@ -6,8 +6,8 @@ import { createPublicClient, createWalletClient, custom } from "viem"
 import { bsc } from "viem/chains"
 import { formatUsd } from "@/lib/currency"
 import { sendClientTelemetry } from "@/lib/client-telemetry"
-import contractAbi from "@/twin/abis/DigitalTwinSharesV1.json"
-import networks from "@/twin/networks.json"
+import contractAbi from "@/lib/contracts/abis/DigitalTwinSharesV1.json"
+import networks from "@/lib/contracts/networks.json"
 import { useWallet } from "@/components/wallet-provider"
 import {
   buildRequotePrompt,

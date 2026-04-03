@@ -34,8 +34,5 @@ data/
 docs/
 ui/
 
-# Legacy twin subproject: keep only runtime contract artifacts
-twin/*
-!twin/abis/
-!twin/abis/DigitalTwinSharesV1.json
-!twin/networks.json
+# Legacy twin subproject
+twin/

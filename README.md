@@ -251,10 +251,11 @@ tradekeys/
   app/                  Next.js routes and API routes
   components/           UI and interactive client components
   lib/                  shared services, env helpers, and server adapters
+  lib/contracts/        runtime ABI and network contract artifacts
   migrations/           SQL migrations
   public/               static assets
   scripts/              sync, migration, and AI bridge scripts
-  twin/                 Twin.fun contract artifacts and subgraph workspace
+  twin/                 optional Twin.fun subgraph workspace
   docs/                 product, ops, and security documentation
 ```
 
