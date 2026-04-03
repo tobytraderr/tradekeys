@@ -16,10 +16,7 @@
     "build": {
       "inputs": [
         {
-          "step": "install",
-          "include": [
-            "."
-          ]
+          "step": "install"
         }
       ],
       "commands": [
