@@ -1,0 +1,20 @@
+<svg width="880" height="240" viewBox="0 0 880 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tradekeysWordmarkGradient" x1="40" y1="36" x2="234" y2="204" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#63F9BB"/>
+      <stop offset="1" stop-color="#A3A6FF"/>
+    </linearGradient>
+    <linearGradient id="tradekeysKeysGradient" x1="472" y1="86" x2="722" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#63F9BB"/>
+      <stop offset="1" stop-color="#A3A6FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="40" y="56" width="84" height="84" rx="27" stroke="url(#tradekeysWordmarkGradient)" stroke-width="14"/>
+  <rect x="60" y="98" width="10" height="22" rx="5" fill="#63F9BB"/>
+  <rect x="78" y="86" width="10" height="34" rx="5" fill="#63F9BB"/>
+  <rect x="96" y="72" width="10" height="48" rx="5" fill="#A3A6FF"/>
+  <rect x="114" y="98" width="92" height="18" rx="9" fill="url(#tradekeysWordmarkGradient)"/>
+  <rect x="148" y="114" width="22" height="40" rx="9" fill="url(#tradekeysWordmarkGradient)"/>
+  <rect x="180" y="114" width="22" height="24" rx="9" fill="url(#tradekeysWordmarkGradient)"/>
+  <text x="248" y="143" fill="#F5F8FA" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="92" font-weight="700" letter-spacing="-6">Trade<tspan fill="url(#tradekeysKeysGradient)">Keys</tspan></text>
+</svg>

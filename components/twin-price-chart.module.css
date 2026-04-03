@@ -1,0 +1,122 @@
+.shell {
+  background: #101417;
+  padding: 1.4rem;
+  display: grid;
+  gap: 1.35rem;
+  min-height: 30rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.metricLabel {
+  color: #a9abaf;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  margin-top: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.priceValue {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.changeUp,
+.changeDown {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.changeUp {
+  color: #63f9bb;
+}
+
+.changeDown {
+  color: #ff6e84;
+}
+
+.rangeTabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  background: #1c2024;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.rangeButton {
+  border: 0;
+  background: transparent;
+  color: #a9abaf;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  padding: 0.7rem 0.85rem;
+  text-transform: uppercase;
+}
+
+.rangeButtonActive {
+  background: linear-gradient(135deg, rgba(163, 166, 255, 0.18), rgba(96, 99, 238, 0.12));
+  color: #f8f9fe;
+}
+
+.viewport {
+  width: 100%;
+  min-height: 24rem;
+  min-width: 0;
+}
+
+.empty {
+  color: #a9abaf;
+  min-height: 16rem;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    padding: 1rem;
+    min-height: 24rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rangeTabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .rangeButton {
+    flex: 1 1 0;
+    text-align: center;
+    padding-inline: 0.4rem;
+  }
+
+  .viewport {
+    min-height: 17rem;
+  }
+}

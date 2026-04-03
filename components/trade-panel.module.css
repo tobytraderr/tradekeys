@@ -1,0 +1,220 @@
+.panel {
+  background: #22262b;
+  overflow: hidden;
+}
+
+.tabRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tabButton {
+  border: 0;
+  background: transparent;
+  color: #a9abaf;
+  padding: 1.2rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tabButtonActive {
+  color: #63f9bb;
+  border-bottom: 2px solid #63f9bb;
+}
+
+.body {
+  padding: 1.4rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.label {
+  display: grid;
+  gap: 0.6rem;
+  color: #a9abaf;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.inputShell {
+  position: relative;
+  background: #101417;
+}
+
+.input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #f8f9fe;
+  padding: 1.3rem 4.6rem 1.3rem 1rem;
+  font-size: 1.9rem;
+  font-weight: 700;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+.input:focus {
+  outline: none;
+}
+
+.inputSuffix {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a9abaf;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.quoteCard {
+  background: #101417;
+  padding: 1rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.statusCard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem;
+}
+
+.statusCard strong {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.statusCard p {
+  margin: 0;
+  line-height: 1.45;
+  font-size: 0.84rem;
+}
+
+.statusCardReady {
+  background: rgba(99, 249, 187, 0.08);
+  color: #63f9bb;
+}
+
+.statusCardWarning {
+  background: rgba(255, 196, 122, 0.1);
+  color: #ffc47a;
+}
+
+.referenceBlock {
+  display: grid;
+  gap: 0.7rem;
+  padding-bottom: 0.9rem;
+  margin-bottom: 0.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.quoteRow,
+.quoteTotal,
+.balanceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quoteRow span,
+.balanceRow span {
+  color: #a9abaf;
+  font-size: 0.88rem;
+}
+
+.quoteRow strong,
+.quoteTotal strong,
+.balanceRow strong {
+  font-weight: 700;
+}
+
+.spreadWarning {
+  color: #ffb36b;
+}
+
+.spreadPositive {
+  color: #63f9bb;
+}
+
+.quoteTotal {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.quoteTotal span {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.quoteTotal strong {
+  color: #63f9bb;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.35rem;
+}
+
+.primaryButton {
+  width: 100%;
+  border: 0;
+  background: #63f9bb;
+  color: #053626;
+  padding: 1.15rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.balanceRow {
+  font-size: 0.92rem;
+}
+
+.note,
+.warning,
+.error,
+.success {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.88rem;
+}
+
+.note {
+  color: #a9abaf;
+}
+
+.warning {
+  color: #ffc47a;
+}
+
+.error {
+  color: #ff6e84;
+}
+
+.success {
+  color: #63f9bb;
+}
+
+@media (max-width: 900px) {
+  .body {
+    padding: 1rem;
+  }
+
+  .input {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,762 @@
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(18rem, 24vw, 22rem);
+  gap: 1.5rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.mainColumn,
+.sideColumn {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.statusBanner {
+  padding: 1rem 1.1rem;
+  background: rgba(255, 185, 91, 0.1);
+  border: 1px solid rgba(255, 185, 91, 0.28);
+  color: #ffd493;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.statusBanner strong {
+  font-size: 0.82rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.statusBanner p {
+  margin: 0;
+  color: #f7e1b5;
+  line-height: 1.55;
+}
+
+.mobileActionStack,
+.mobileSupplementaryStack {
+  display: none;
+}
+
+.sideColumn {
+  position: sticky;
+  top: 5.5rem;
+}
+
+.heroCard,
+.statCard,
+.dataCard,
+.copilotCard,
+.alertCard,
+.summaryCard {
+  background: #101417;
+  min-width: 0;
+}
+
+.heroCard {
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.heroIdentity {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  justify-content: space-between;
+}
+
+.heroAvatar {
+  width: 6.5rem;
+  height: 6.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #1c2024;
+  filter: grayscale(1);
+}
+
+.heroAvatarFallback {
+  display: grid;
+  place-items: center;
+  color: #f8f9fe;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.heroCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+.heroSummary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.heroSummaryActions {
+  display: grid;
+  justify-items: end;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.heroCopy h1 {
+  margin: 0;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+
+.heroCopy p {
+  margin: 0.85rem 0 0;
+  color: #a9abaf;
+  line-height: 1.65;
+  max-width: 64ch;
+}
+
+.heroToggle {
+  border: 0;
+  background: #1c2024;
+  color: #a3a6ff;
+  padding: 0.8rem 0.95rem;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.heroExpanded {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.heroDescription {
+  margin: 0;
+  color: #a9abaf;
+  line-height: 1.65;
+  max-width: none;
+  width: 100%;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.25rem;
+  margin-top: 0.85rem;
+  color: #a9abaf;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.metaPill {
+  background: #1c2024;
+  color: #a3a6ff;
+  padding: 0.35rem 0.55rem;
+}
+
+.metaPillWide {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.actionMenu {
+  position: relative;
+}
+
+.iconButton {
+  width: 3.2rem;
+  height: 3.2rem;
+  border: 0;
+  background: #1c2024;
+  color: #f8f9fe;
+  display: grid;
+  place-items: center;
+}
+
+.iconButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.iconButtonActive {
+  color: #a3a6ff;
+  background: linear-gradient(135deg, rgba(163, 166, 255, 0.18), rgba(96, 99, 238, 0.12));
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 10rem;
+  background: rgba(28, 32, 36, 0.92);
+  backdrop-filter: blur(18px);
+  padding: 0.35rem;
+  display: grid;
+  gap: 0.25rem;
+  box-shadow: 0 0 40px rgba(163, 166, 255, 0.08);
+  z-index: 5;
+}
+
+.menuButton {
+  border: 0;
+  background: transparent;
+  color: #f8f9fe;
+  text-align: left;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.menuButton:hover {
+  background: rgba(163, 166, 255, 0.14);
+}
+
+.feedbackSuccess,
+.feedbackError {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.feedbackSuccess {
+  color: #63f9bb;
+}
+
+.feedbackError {
+  color: #ff6e84;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.08rem;
+  background: rgba(255, 255, 255, 0.03);
+  min-width: 0;
+}
+
+.statCard {
+  padding: 1.55rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.statCard span,
+.dataCardHead h3,
+.alertHead span,
+.copilotHead span,
+.summaryRow span {
+  color: #a9abaf;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.statCard strong {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.statCard small {
+  color: #7d858c;
+  font-size: 0.82rem;
+}
+
+.desktopFeeds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.mobileFeeds {
+  display: none;
+}
+
+.dataCard {
+  overflow: hidden;
+}
+
+.dataCardHead {
+  padding: 1.1rem 1.2rem 0.9rem;
+}
+
+.dataCardHead h3 {
+  margin: 0;
+  color: #f8f9fe;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.9rem 1.2rem;
+  text-align: left;
+}
+
+.table thead th {
+  color: #7d858c;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.table tbody td {
+  font-size: 0.92rem;
+  color: #f8f9fe;
+}
+
+.table tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.tradeList {
+  display: grid;
+  min-width: 0;
+}
+
+.tradeRow {
+  padding: 1rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tradeRow:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.tradeMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.tradeMeta strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.tradeMeta p {
+  margin: 0.35rem 0 0;
+  color: #a9abaf;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tradeIcon {
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  background: #1c2024;
+}
+
+.tradeIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tradeIconBuy {
+  color: #63f9bb;
+}
+
+.tradeIconSell {
+  color: #ff6e84;
+}
+
+.tradeValueBuy,
+.tradeValueSell {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.tradeValueBuy {
+  color: #63f9bb;
+}
+
+.tradeValueSell {
+  color: #ff6e84;
+}
+
+.copilotCard {
+  padding: 1.35rem;
+  display: grid;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(163, 166, 255, 0.14), transparent 40%),
+    #101417;
+}
+
+.copilotHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.copilotDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  background: #a3a6ff;
+  border-radius: 999px;
+}
+
+.copilotCard h2 {
+  margin: 0;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.copilotSummary,
+.copilotAction {
+  margin: 0;
+  color: #d8dbdf;
+  line-height: 1.6;
+}
+
+.signalList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.signalList span {
+  background: rgba(163, 166, 255, 0.1);
+  color: #d4d6ff;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.insightStats {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.insightStatRow,
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 0;
+}
+
+.insightStatRow + .insightStatRow,
+.summaryRow + .summaryRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.insightStatRow strong,
+.summaryRow strong {
+  font-weight: 700;
+}
+
+.statBullish {
+  color: #63f9bb;
+}
+
+.statBearish {
+  color: #ff6e84;
+}
+
+.statNeutral {
+  color: #f8f9fe;
+}
+
+.copilotButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.1rem;
+  background: transparent;
+  color: #d4d6ff;
+  border: 1px solid rgba(163, 166, 255, 0.35);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.copilotButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alertCard,
+.summaryCard {
+  padding: 1.2rem;
+}
+
+.alertList {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.alertItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: #161a1e;
+  padding: 0.9rem;
+}
+
+.alertItem strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.alertItem p {
+  margin: 0.3rem 0 0;
+  color: #a9abaf;
+  font-size: 0.82rem;
+}
+
+.alertItem span {
+  color: #63f9bb;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sideColumn {
+    position: static;
+  }
+}
+
+@media (max-width: 1500px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr) clamp(17.25rem, 25vw, 20rem);
+  }
+
+  .desktopFeeds {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .heroIdentity {
+    align-items: center;
+  }
+
+  .heroSummary {
+    width: 100%;
+    align-items: center;
+  }
+
+  .heroSummaryActions {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .heroActions {
+    justify-content: flex-start;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .desktopFeeds {
+    display: none;
+  }
+
+  .sideColumn {
+    display: none;
+  }
+
+  .mobileActionStack,
+  .mobileSupplementaryStack {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .mobileFeeds {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .mobileTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .mobileTab {
+    border: 0;
+    background: #101417;
+    color: #a9abaf;
+    padding: 0.95rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .mobileTabActive {
+    color: #f8f9fe;
+    background: linear-gradient(135deg, rgba(163, 166, 255, 0.18), rgba(96, 99, 238, 0.12));
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    gap: 1rem;
+  }
+
+  .heroCard,
+  .copilotCard,
+  .alertCard,
+  .summaryCard {
+    padding: 1rem;
+  }
+
+  .heroAvatar {
+    width: 5.4rem;
+    height: 5.4rem;
+  }
+
+  .heroIdentity,
+  .heroSummary {
+    align-items: flex-start;
+  }
+
+  .heroSummary {
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .heroSummaryActions {
+    width: auto;
+    justify-items: start;
+  }
+
+  .heroActions {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+
+  .iconButton {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .metaRow {
+    gap: 0.65rem;
+  }
+
+  .metaPillWide {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .heroToggle {
+    width: auto;
+    text-align: left;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statCard {
+    padding: 1.05rem;
+  }
+
+  .statCard strong {
+    font-size: clamp(1.55rem, 7vw, 2.05rem);
+  }
+
+  .tradeRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table th,
+  .table td,
+  .tradeRow {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroCard,
+  .dataCard,
+  .copilotCard,
+  .alertCard,
+  .summaryCard {
+    padding: 0.9rem;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(2.15rem, 12vw, 2.85rem);
+  }
+
+  .heroDescription,
+  .heroCopy p {
+    line-height: 1.55;
+    font-size: 0.95rem;
+  }
+
+  .metaRow {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statCard {
+    padding: 0.9rem;
+  }
+
+  .statCard small {
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+}

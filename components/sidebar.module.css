@@ -1,0 +1,279 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  height: 100vh;
+  overflow: hidden;
+  background: #101417;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  transition: width 160ms ease;
+}
+
+.mobileToggle,
+.mobileBackdrop {
+  display: none;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.1rem 1rem 0.9rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brandCopy {
+  min-width: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.brandLogo {
+  min-width: 0;
+}
+
+.tagline {
+  color: #a9abaf;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: #171c22;
+  color: #a9abaf;
+  flex: 0 0 auto;
+}
+
+.toggle:hover {
+  color: #f8f9fe;
+  background: #22262b;
+}
+
+.toggleIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.nav {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 0.9rem 1.25rem;
+  color: #a9abaf;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-left: 4px solid transparent;
+}
+
+.navLink:hover {
+  background: #171c22;
+  color: #f8f9fe;
+}
+
+.navActive {
+  color: #f8f9fe;
+  background: linear-gradient(90deg, rgba(163, 166, 255, 0.2), transparent 86%);
+  border-left-color: #a3a6ff;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+}
+
+.spacer {
+  min-height: 0;
+}
+
+.ctaWrap {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  background: #63f9bb;
+  color: #083b2a;
+  padding: 1rem 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 0 0.85rem;
+}
+
+.footerLink {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 0.9rem 1.5rem;
+  color: #a9abaf;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.footerLink:hover {
+  color: #f8f9fe;
+}
+
+.footerLabel {
+  white-space: nowrap;
+}
+
+.sidebarCollapsed .tagline,
+.sidebarCollapsed .label,
+.sidebarCollapsed .footerLabel {
+  display: none;
+}
+
+.sidebarCollapsed .brandBlock {
+  padding-inline: 0.9rem;
+}
+
+.sidebarCollapsed .brandCopy {
+  justify-items: center;
+}
+
+.sidebarCollapsed .navLink,
+.sidebarCollapsed .footerLink {
+  justify-content: center;
+  padding-inline: 0.75rem;
+}
+
+.sidebarCollapsed .ctaWrap {
+  padding-inline: 0.75rem;
+}
+
+.sidebarCollapsed .cta {
+  padding-inline: 0;
+  letter-spacing: 0;
+  font-size: 0;
+}
+
+.sidebarCollapsed .cta::before {
+  content: "+";
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobileToggle {
+    position: fixed;
+    top: 0.95rem;
+    left: 1rem;
+    z-index: 65;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    background: rgba(23, 28, 34, 0.94);
+    color: #f8f9fe;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(18px);
+  }
+
+  .mobileToggleIcon {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .mobileBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 59;
+    border: none;
+    background: rgba(0, 0, 0, 0.58);
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: min(18rem, calc(100vw - 2.5rem));
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  }
+
+  .sidebarMobileOpen {
+    transform: translateX(0);
+  }
+
+  .toggle {
+    display: none;
+  }
+
+  .brandBlock {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .sidebarCollapsed .tagline,
+  .sidebarCollapsed .label,
+  .sidebarCollapsed .footerLabel {
+    display: block;
+  }
+
+  .sidebarCollapsed .navLink,
+  .sidebarCollapsed .footerLink {
+    justify-content: flex-start;
+    padding-inline: 1.25rem;
+  }
+
+  .sidebarCollapsed .ctaWrap {
+    padding-inline: 1rem;
+  }
+
+  .sidebarCollapsed .cta {
+    letter-spacing: 0.22em;
+    font-size: 0.8rem;
+  }
+
+  .sidebarCollapsed .cta::before {
+    content: none;
+  }
+}

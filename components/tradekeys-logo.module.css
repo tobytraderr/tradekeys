@@ -1,0 +1,44 @@
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.78rem;
+  min-width: 0;
+}
+
+.compact {
+  gap: 0;
+}
+
+.mark {
+  width: 2.65rem;
+  height: 2.65rem;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 10px 24px rgba(99, 249, 187, 0.12));
+}
+
+.compact .mark {
+  width: 2.3rem;
+  height: 2.3rem;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 1.78rem;
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  line-height: 0.92;
+  white-space: nowrap;
+}
+
+.trade {
+  color: #f8f9fe;
+}
+
+.keys {
+  margin-left: 0.02em;
+  background: linear-gradient(135deg, #63f9bb 0%, #a3a6ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}

@@ -1,0 +1,41 @@
+# Build output
+.next/
+dist/
+coverage/
+tsconfig.tsbuildinfo
+
+# Dependencies and caches
+node_modules/
+.npm-cache/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+scripts/__pycache__/
+
+# Runtime-generated local state
+data/
+
+# Non-runtime product/design docs
+docs/
+ui/
+
+# Legacy twin subproject: keep only runtime contract artifacts
+twin/*
+!twin/abis/
+!twin/abis/DigitalTwinSharesV1.json
+!twin/networks.json

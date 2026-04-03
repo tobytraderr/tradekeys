@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tradekeysAppIconGradient" x1="42" y1="48" x2="214" y2="202" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#63F9BB"/>
+      <stop offset="1" stop-color="#A3A6FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="64" fill="#0E1317"/>
+  <rect x="36" y="46" width="94" height="94" rx="30" stroke="url(#tradekeysAppIconGradient)" stroke-width="16"/>
+  <rect x="58" y="92" width="12" height="24" rx="6" fill="#63F9BB"/>
+  <rect x="78" y="78" width="12" height="38" rx="6" fill="#63F9BB"/>
+  <rect x="98" y="64" width="12" height="52" rx="6" fill="#A3A6FF"/>
+  <rect x="118" y="92" width="96" height="20" rx="10" fill="url(#tradekeysAppIconGradient)"/>
+  <rect x="154" y="110" width="24" height="44" rx="10" fill="url(#tradekeysAppIconGradient)"/>
+  <rect x="188" y="110" width="24" height="28" rx="10" fill="url(#tradekeysAppIconGradient)"/>
+</svg>

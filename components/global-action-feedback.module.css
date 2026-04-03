@@ -1,0 +1,108 @@
+.wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.wrapVisible {
+  opacity: 1;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 0.18rem;
+  width: 100%;
+  background:
+    linear-gradient(90deg, rgba(163, 166, 255, 0.08), #a3a6ff 38%, #63f9bb 72%, rgba(99, 249, 187, 0.08));
+  background-size: 180% 100%;
+  animation: loading-bar 1s linear infinite;
+  box-shadow: 0 0 16px rgba(163, 166, 255, 0.22);
+}
+
+.pill {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.4rem;
+  padding: 0.58rem 0.85rem;
+  background: rgba(16, 20, 23, 0.95);
+  border: 1px solid rgba(163, 166, 255, 0.22);
+  color: #f8f9fe;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+}
+
+.pillInfo {
+  border-color: rgba(163, 166, 255, 0.22);
+}
+
+.pillSuccess {
+  border-color: rgba(99, 249, 187, 0.28);
+}
+
+.pillError {
+  border-color: rgba(255, 110, 132, 0.28);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  animation: pulse-dot 1s ease-in-out infinite;
+}
+
+.dotInfo {
+  background: #a3a6ff;
+  box-shadow: 0 0 14px rgba(163, 166, 255, 0.38);
+}
+
+.dotSuccess {
+  background: #63f9bb;
+  box-shadow: 0 0 14px rgba(99, 249, 187, 0.38);
+}
+
+.dotError {
+  background: #ff6e84;
+  box-shadow: 0 0 14px rgba(255, 110, 132, 0.38);
+}
+
+@keyframes loading-bar {
+  0% {
+    background-position: 180% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .pill {
+    right: 0.85rem;
+    bottom: calc(0.85rem + env(safe-area-inset-bottom));
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+  }
+}
