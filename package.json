@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
+    "start:railway": "node scripts/start-production.mjs",
     "lint": "node scripts/lint.mjs",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
