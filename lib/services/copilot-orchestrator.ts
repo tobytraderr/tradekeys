@@ -30,6 +30,12 @@ import type {
   TwinSummary,
 } from "@/lib/types"
 
+type CopilotBridgeError = Error & {
+  exitCode?: number
+  stdout?: string
+  stderr?: string
+}
+
 type CopilotHistoryTurn = {
   prompt: string
   response: string
@@ -355,6 +361,7 @@ async function planCopilotRequest(input: CopilotOrchestrationInput): Promise<Cop
     }
     return parsedPlan
   } catch (error) {
+    const bridgeError = error as CopilotBridgeError
     if (input.traceId) {
       await logCopilotTrace({
         traceId: input.traceId,
@@ -364,6 +371,9 @@ async function planCopilotRequest(input: CopilotOrchestrationInput): Promise<Cop
           error: {
             type: error instanceof Error ? error.name : typeof error,
             message: error instanceof Error ? error.message : String(error),
+            ...(typeof bridgeError.exitCode === "number" ? { exitCode: bridgeError.exitCode } : {}),
+            ...(typeof bridgeError.stdout === "string" ? { stdout: bridgeError.stdout } : {}),
+            ...(typeof bridgeError.stderr === "string" ? { stderr: bridgeError.stderr } : {}),
             ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
           },
         },

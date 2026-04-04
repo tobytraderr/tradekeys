@@ -5,6 +5,12 @@ import { sanitizeCopilotText } from "@/lib/copilot-security"
 import { getOpenGradientModel, getOpenGradientPrivateKey, getPythonBin } from "@/lib/env"
 import type { CopilotResult, TwinSummary } from "@/lib/types"
 
+type OpenGradientBridgeError = Error & {
+  exitCode?: number
+  stdout?: string
+  stderr?: string
+}
+
 type CopilotRequest = {
   prompt: string
   twins?: TwinSummary[]
@@ -62,7 +68,11 @@ export async function summarizeWithOpenGradient(request: CopilotRequest): Promis
     child.on("close", (code) => {
       clearTimeout(timeout)
       if (code !== 0) {
-        reject(new Error(stderr.trim() || `OpenGradient bridge exited with code ${code}`))
+        const error = new Error(`OpenGradient bridge exited with code ${code}`) as OpenGradientBridgeError
+        error.exitCode = code ?? undefined
+        error.stdout = stdout.trim() || undefined
+        error.stderr = stderr.trim() || undefined
+        reject(error)
         return
       }
       try {
