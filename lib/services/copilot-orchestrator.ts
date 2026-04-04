@@ -92,7 +92,7 @@ function cleanExtractedEntity(value: string) {
   return value
     .trim()
     .replace(
-      /\s+(?:using|with|based on|by)\s+(?:holders?|price|price change|volume|volume shift|holder growth|recent trades?|quotes?|risk|momentum)\b[\s\S]*$/i,
+      /\s+(?:using|with|based on|by)\s+(?:(?:current|latest|live|indexed|recent|short-term|on-chain|market)\s+)*(?:holders?|price|price change|volume|volume shift|holder growth|recent trades?|quotes?|risk|momentum)\b[\s\S]*$/i,
       ""
     )
     .replace(/[,.]+$/g, "")
@@ -354,13 +354,18 @@ async function planCopilotRequest(input: CopilotOrchestrationInput): Promise<Cop
       })
     }
     return parsedPlan
-  } catch {
+  } catch (error) {
     if (input.traceId) {
       await logCopilotTrace({
         traceId: input.traceId,
         stage: "planner.fallback",
         payload: {
           fallbackPlan,
+          error: {
+            type: error instanceof Error ? error.name : typeof error,
+            message: error instanceof Error ? error.message : String(error),
+            ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
+          },
         },
       })
     }
