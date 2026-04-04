@@ -126,16 +126,45 @@ async function checkRpcHealth(): Promise<AdminHealthCheck> {
   }
 }
 
-function probePythonBinary(pythonBin: string): Promise<boolean> {
+type PythonProbeResult = {
+  ok: boolean
+  stdout: string
+  stderr: string
+}
+
+function runPythonProbe(pythonBin: string, args: string[]): Promise<PythonProbeResult> {
   return new Promise((resolve) => {
-    const child = spawn(pythonBin, ["--version"], {
+    const child = spawn(pythonBin, args, {
       cwd: process.cwd(),
-      stdio: ["ignore", "ignore", "ignore"],
+      stdio: ["ignore", "pipe", "pipe"],
       env: process.env,
     })
 
-    child.on("error", () => resolve(false))
-    child.on("close", (code) => resolve(code === 0))
+    let stdout = ""
+    let stderr = ""
+
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString()
+    })
+
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString()
+    })
+
+    child.on("error", (error) =>
+      resolve({
+        ok: false,
+        stdout,
+        stderr: error instanceof Error ? error.message : String(error),
+      })
+    )
+    child.on("close", (code) =>
+      resolve({
+        ok: code === 0,
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+      })
+    )
   })
 }
 
@@ -150,12 +179,23 @@ async function checkAiHealth(): Promise<AdminHealthCheck> {
     )
   }
 
-  const pythonReady = await probePythonBinary(getPythonBin())
-  if (!pythonReady) {
+  const pythonBin = getPythonBin()
+  const pythonReady = await runPythonProbe(pythonBin, ["--version"])
+  if (!pythonReady.ok) {
     return buildCheck(
       "ai-provider",
       "down",
-      `Python binary "${getPythonBin()}" could not be executed.`,
+      `Python binary "${pythonBin}" could not be executed.${pythonReady.stderr ? ` ${pythonReady.stderr}` : ""}`,
+      Date.now() - startedAt
+    )
+  }
+
+  const sdkReady = await runPythonProbe(pythonBin, ["-c", "import opengradient"])
+  if (!sdkReady.ok) {
+    return buildCheck(
+      "ai-provider",
+      "down",
+      `Python bridge is missing the OpenGradient SDK for "${pythonBin}".${sdkReady.stderr ? ` ${sdkReady.stderr}` : sdkReady.stdout ? ` ${sdkReady.stdout}` : ""}`,
       Date.now() - startedAt
     )
   }
