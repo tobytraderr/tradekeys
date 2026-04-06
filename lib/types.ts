@@ -310,6 +310,7 @@ export type CopilotCompactTwin = {
   name: string
   owner: string
   supply: number
+  marketCapUsd: number
   holders: number
   totalTrades: number
   volume24hUsd: number

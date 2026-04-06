@@ -94,6 +94,56 @@ function normalizeText(value: string) {
   return value.trim().toLowerCase()
 }
 
+function parseUsdScalar(raw: string, suffix?: string) {
+  const numeric = Number(raw.replace(/,/g, ""))
+  if (!Number.isFinite(numeric)) {
+    return null
+  }
+
+  const multiplier =
+    suffix?.toLowerCase() === "b"
+      ? 1_000_000_000
+      : suffix?.toLowerCase() === "m"
+        ? 1_000_000
+        : suffix?.toLowerCase() === "k"
+          ? 1_000
+          : 1
+
+  return numeric * multiplier
+}
+
+function computeMarketCapUsd(twin: Pick<TwinSummary, "supply" | "lastPriceUsd">) {
+  return twin.supply * twin.lastPriceUsd
+}
+
+function formatUsdMetric(value: number) {
+  return `$${value.toLocaleString(undefined, {
+    minimumFractionDigits: value > 0 && value < 1 ? 4 : 0,
+    maximumFractionDigits: value > 0 && value < 1 ? 4 : 2,
+  })}`
+}
+
+function parseScreeningConstraints(prompt: string) {
+  const marketCapMaxMatch =
+    prompt.match(/\b(?:under|below|less than|max(?:imum)?|at most)\s+\$?\s*([\d,.]+)\s*([kmb])?\s*(?:(?:usd|dollars?)\s*)?(?:mcap|market\s+cap)\b/i) ??
+    prompt.match(/\b(?:mcap|market\s+cap)\b[\s:]*?(?:under|below|less than|max(?:imum)?|at most)\s+\$?\s*([\d,.]+)\s*([kmb])?\b/i) ??
+    prompt.match(/<\s*\$?\s*([\d,.]+)\s*([kmb])?\s*(?:(?:usd|dollars?)\s*)?(?:mcap|market\s+cap)\b/i) ??
+    prompt.match(/\b(?:mcap|market\s+cap)\s*<\s*\$?\s*([\d,.]+)\s*([kmb])?\b/i)
+
+  const marketCapMinMatch =
+    prompt.match(/\b(?:over|above|greater than|min(?:imum)?|at least)\s+\$?\s*([\d,.]+)\s*([kmb])?\s*(?:(?:usd|dollars?)\s*)?(?:mcap|market\s+cap)\b/i) ??
+    prompt.match(/\b(?:mcap|market\s+cap)\b[\s:]*?(?:over|above|greater than|min(?:imum)?|at least)\s+\$?\s*([\d,.]+)\s*([kmb])?\b/i) ??
+    prompt.match(/>\s*\$?\s*([\d,.]+)\s*([kmb])?\s*(?:(?:usd|dollars?)\s*)?(?:mcap|market\s+cap)\b/i) ??
+    prompt.match(/\b(?:mcap|market\s+cap)\s*>\s*\$?\s*([\d,.]+)\s*([kmb])?\b/i)
+
+  return {
+    marketCapUsdMax:
+      marketCapMaxMatch ? parseUsdScalar(marketCapMaxMatch[1] ?? "", marketCapMaxMatch[2]) : null,
+    marketCapUsdMin:
+      marketCapMinMatch ? parseUsdScalar(marketCapMinMatch[1] ?? "", marketCapMinMatch[2]) : null,
+  }
+}
+
 function cleanExtractedEntity(value: string) {
   return value
     .trim()
@@ -499,6 +549,7 @@ async function buildCompactTwin(twinId: string) {
       name: detail.twin.displayName,
       owner: detail.twin.owner,
       supply: detail.twin.supply,
+      marketCapUsd: Number(computeMarketCapUsd(detail.twin).toFixed(2)),
       holders: detail.twin.holders,
       totalTrades: detail.twin.totalTrades,
       volume24hUsd: Number(detail.twin.volume24hUsd.toFixed(2)),
@@ -751,13 +802,14 @@ async function getExplanationSnapshot(resolved: ResolvedTwinEntity[]) {
 async function rankTwinsForScreen(prompt: string) {
   const warnings: CopilotToolWarning[] = []
   const requestedCount = extractRequestedScreenCount(prompt)
+  const constraints = parseScreeningConstraints(prompt)
   const [trending, latest, newer] = await Promise.all([
     getTrendingTwins().catch(() => []),
     getLatestActivityTwins().catch(() => []),
     getNewTwins().catch(() => []),
   ])
 
-  const combined = dedupeTwins([...trending, ...latest, ...newer]).slice(0, Math.max(8, requestedCount * 2))
+  const combined = dedupeTwins([...trending, ...latest, ...newer])
   if (combined.length === 0) {
     warnings.push({
       tool: "rank_twins_by",
@@ -765,8 +817,37 @@ async function rankTwinsForScreen(prompt: string) {
     })
   }
 
+  const filtered = combined.filter((twin) => {
+    const marketCapUsd = computeMarketCapUsd(twin)
+    if (typeof constraints.marketCapUsdMax === "number" && marketCapUsd > constraints.marketCapUsdMax) {
+      return false
+    }
+    if (typeof constraints.marketCapUsdMin === "number" && marketCapUsd < constraints.marketCapUsdMin) {
+      return false
+    }
+    return true
+  })
+
+  if (
+    combined.length > 0 &&
+    filtered.length === 0 &&
+    (typeof constraints.marketCapUsdMax === "number" || typeof constraints.marketCapUsdMin === "number")
+  ) {
+    const parts: string[] = []
+    if (typeof constraints.marketCapUsdMin === "number") {
+      parts.push(`market cap >= ${formatUsdMetric(constraints.marketCapUsdMin)}`)
+    }
+    if (typeof constraints.marketCapUsdMax === "number") {
+      parts.push(`market cap <= ${formatUsdMetric(constraints.marketCapUsdMax)}`)
+    }
+    warnings.push({
+      tool: "rank_twins_by",
+      message: `No twins in the current feed matched the requested ${parts.join(" and ")} filter.`,
+    })
+  }
+
   const normalized = normalizeText(prompt)
-  const scored = combined
+  const scored = filtered
     .map((twin) => {
       const score =
         (normalized.includes("new") ? 20 - Math.min(parseInt(twin.ageLabel, 10) || 0, 20) : 0) +
@@ -950,7 +1031,7 @@ function buildLocalFallbackContent(input: {
     return input.ranked
       .map(
         (twin, index) =>
-          `${index + 1}. ${twin.displayName}: ${twin.holders} holders, $${twin.volume24hUsd.toLocaleString()} 24h volume, ${twin.change1hPct >= 0 ? "+" : ""}${twin.change1hPct.toFixed(1)}% 1h.`
+          `${index + 1}. ${twin.displayName}: ${twin.holders} holders, ${formatUsdMetric(computeMarketCapUsd(twin))} mcap, $${twin.volume24hUsd.toLocaleString()} 24h volume, ${twin.change1hPct >= 0 ? "+" : ""}${twin.change1hPct.toFixed(1)}% 1h.`
           + ` ${typeof twin.volumeSpikePct === "number" ? `${twin.volumeSpikePct >= 0 ? "+" : ""}${twin.volumeSpikePct.toFixed(0)}% 1h volume shift.` : ""}`
       )
       .join("\n")
@@ -1095,6 +1176,7 @@ export async function orchestrateCopilot(
     rankedTwins: rankedTwins.map((twin) => ({
       id: twin.id,
       name: twin.displayName,
+      marketCapUsd: Number(computeMarketCapUsd(twin).toFixed(2)),
       holders: twin.holders,
       volume24hUsd: Number(twin.volume24hUsd.toFixed(2)),
       volume1hUsd: Number(twin.volume1hUsd.toFixed(2)),
