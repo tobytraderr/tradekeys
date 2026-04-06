@@ -42,6 +42,11 @@ type ExecutionPreflightPayload = {
   quote: TwinQuote
 }
 
+function parseUsdDisplay(value: string | null | undefined) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : null
+}
+
 export function TradePanel({
   twinId,
   initialQuote,
@@ -141,11 +146,15 @@ export function TradePanel({
   }, [account, tradeSuccess])
 
   const amountValue = /^\d+$/.test(amount) ? Number(amount) : 0
-  const totalUsd = Number(side === "buy" ? quote.buyQuoteUsd : quote.sellQuoteUsd)
-  const perKeyUsd = amountValue > 0 ? totalUsd / amountValue : totalUsd
+  const totalUsd = parseUsdDisplay(side === "buy" ? quote.buyQuoteUsd : quote.sellQuoteUsd)
+  const perKeyUsd = typeof totalUsd === "number" && amountValue > 0 ? totalUsd / amountValue : totalUsd
   const hasReferencePrice = typeof referencePriceUsd === "number" && referencePriceUsd > 0
-  const spreadUsd = hasReferencePrice ? perKeyUsd - referencePriceUsd : 0
-  const spreadPct = hasReferencePrice && referencePriceUsd > 0 ? (spreadUsd / referencePriceUsd) * 100 : 0
+  const spreadUsd =
+    hasReferencePrice && typeof perKeyUsd === "number" ? perKeyUsd - referencePriceUsd : null
+  const spreadPct =
+    hasReferencePrice && typeof spreadUsd === "number" && referencePriceUsd > 0
+      ? (spreadUsd / referencePriceUsd) * 100
+      : null
   const holderBalanceLabel = quote.holderBalance ? `${quote.holderBalance} keys` : null
   const quoteExpired = isQuoteExpired(quote)
   const hasInsufficientBalance = Boolean(
@@ -317,21 +326,27 @@ export function TradePanel({
               </div>
               <div className={styles.quoteRow}>
                 <span>{side === "buy" ? "Execution premium" : "Execution spread"}</span>
-                <strong className={spreadUsd >= 0 ? styles.spreadWarning : styles.spreadPositive}>
-                  {spreadUsd >= 0 ? "+" : "-"}
-                  {formatUsd(Math.abs(spreadUsd))} ({spreadPct >= 0 ? "+" : ""}
-                  {spreadPct.toFixed(1)}%)
+                <strong
+                  className={
+                    typeof spreadUsd === "number" && spreadUsd >= 0
+                      ? styles.spreadWarning
+                      : styles.spreadPositive
+                  }
+                >
+                  {typeof spreadUsd === "number" && typeof spreadPct === "number"
+                    ? `${spreadUsd >= 0 ? "+" : "-"}${formatUsd(Math.abs(spreadUsd))} (${spreadPct >= 0 ? "+" : ""}${spreadPct.toFixed(1)}%)`
+                    : "Unavailable"}
                 </strong>
               </div>
             </div>
           ) : null}
           <div className={styles.quoteRow}>
             <span>{side === "buy" ? "Executable total (USD display)" : "Executable proceeds (USD display)"}</span>
-            <strong>{formatUsd(totalUsd)}</strong>
+            <strong>{typeof totalUsd === "number" ? formatUsd(totalUsd) : "Unavailable"}</strong>
           </div>
           <div className={styles.quoteRow}>
             <span>{side === "buy" ? "Executable buy per key (USD display)" : "Executable sell per key (USD display)"}</span>
-            <strong>{formatUsd(perKeyUsd)}</strong>
+            <strong>{typeof perKeyUsd === "number" ? formatUsd(perKeyUsd) : "Unavailable"}</strong>
           </div>
           <div className={styles.quoteRow}>
             <span>Creator fee share</span>
@@ -345,7 +360,7 @@ export function TradePanel({
           ) : null}
           <div className={styles.quoteTotal}>
             <span>{side === "buy" ? "Submit buy" : "Submit sell"}</span>
-            <strong>{formatUsd(totalUsd)}</strong>
+            <strong>{typeof totalUsd === "number" ? formatUsd(totalUsd) : "Unavailable"}</strong>
           </div>
         </div>
 

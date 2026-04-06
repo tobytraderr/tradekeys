@@ -6,6 +6,12 @@ import contractAbi from "@/lib/contracts/abis/DigitalTwinSharesV1.json"
 import networks from "@/lib/contracts/networks.json"
 import { convertBnbToUsd } from "@/lib/currency"
 import { getBscRpcUrl } from "@/lib/env"
+import {
+  getBnbUsdPriceCacheEntry,
+  setBnbUsdPriceCacheFailure,
+  setBnbUsdPriceCacheSuccess,
+  withBnbUsdPriceRefreshLock,
+} from "@/lib/server/bnb-usd-price-store"
 import { fetchJsonWithRetry } from "@/lib/server/fetch-utils"
 import {
   recordOpsEvent,
@@ -24,6 +30,7 @@ const BNB_USD_MAX_BACKOFF_MS = 5 * 60_000
 const RPC_CALL_TIMEOUT_MS = 10_000
 const RPC_RETRY_ATTEMPTS = 3
 const RPC_RETRY_BASE_MS = 500
+const DISPLAY_USD_UNAVAILABLE = "unavailable"
 
 export type PriceResult = {
   price: number | null
@@ -227,14 +234,8 @@ export async function fetchLiveTwinQuote(twinId: string, amount = 1n, wallet?: `
         sellQuoteWei: sellWei.toString(),
         buyQuoteEth: formatEther(buyWei),
         sellQuoteEth: formatEther(sellWei),
-        buyQuoteUsd:
-          typeof usdPerBnb === "number"
-            ? convertBnbToUsd(Number(formatEther(buyWei)), usdPerBnb).toFixed(2)
-            : "0.00",
-        sellQuoteUsd:
-          typeof usdPerBnb === "number"
-            ? convertBnbToUsd(Number(formatEther(sellWei)), usdPerBnb).toFixed(2)
-            : "0.00",
+        buyQuoteUsd: formatUsdDisplay(Number(formatEther(buyWei)), usdPerBnb),
+        sellQuoteUsd: formatUsdDisplay(Number(formatEther(sellWei)), usdPerBnb),
         feeSharePct: (Number(subjectFeeValue) / 1e16).toFixed(2),
         supply: supplyValue.toString(),
         holderBalanceWei: wallet ? holderBalanceValue.toString() : undefined,
@@ -292,10 +293,7 @@ export async function fetchTwinCreationQuote(
     minSharesToCreate: minShares.toString(),
     requiredValueWei: requiredValue.toString(),
     requiredValueBnb: formatEther(requiredValue),
-    requiredValueUsd:
-      typeof usdPerBnb === "number"
-        ? convertBnbToUsd(Number(formatEther(requiredValue)), usdPerBnb).toFixed(2)
-        : "0.00",
+    requiredValueUsd: formatUsdDisplay(Number(formatEther(requiredValue)), usdPerBnb),
   }
 }
 
@@ -394,6 +392,75 @@ function getStalePriceResult(now = Date.now()): PriceResult | null {
   return null
 }
 
+function getPriceResultFromTimestamp(
+  price: number | null,
+  asOf: number | null,
+  now = Date.now()
+): PriceResult | null {
+  if (typeof price !== "number" || !Number.isFinite(price) || price <= 0 || !asOf) {
+    return null
+  }
+
+  if (now < asOf + BNB_USD_CACHE_TTL_MS) {
+    return buildPriceResult(price, "cache", asOf, false)
+  }
+
+  if (now < asOf + BNB_USD_STALE_TTL_MS) {
+    return buildPriceResult(price, "stale", asOf, true)
+  }
+
+  return null
+}
+
+function syncLocalCacheFromResult(result: PriceResult, retryAfter?: number | null, error?: string | null) {
+  if (typeof result.price === "number" && result.asOf) {
+    bnbUsdCacheState.lastGoodPrice = result.price
+    bnbUsdCacheState.lastGoodAt = result.asOf
+    bnbUsdCacheState.expiresAt = result.asOf + BNB_USD_CACHE_TTL_MS
+    bnbUsdCacheState.staleUntil = result.asOf + BNB_USD_STALE_TTL_MS
+  }
+
+  if (retryAfter && retryAfter > Date.now()) {
+    bnbUsdCacheState.backoffUntil = retryAfter
+  } else if (result.source !== "unavailable") {
+    bnbUsdCacheState.backoffUntil = null
+  }
+
+  if (result.source === "live" || result.source === "cache") {
+    bnbUsdCacheState.consecutiveFailures = 0
+    bnbUsdCacheState.lastError = null
+  } else if (error) {
+    bnbUsdCacheState.lastError = error
+  }
+}
+
+async function getSharedPriceResult(now = Date.now()) {
+  const shared = await getBnbUsdPriceCacheEntry().catch(() => null)
+  if (!shared) {
+    return { shared, result: null as PriceResult | null, retryAfterMs: null as number | null }
+  }
+
+  const retryAfterMs = shared.retryAfter ? Date.parse(shared.retryAfter) : null
+  const asOf = shared.lastSuccessAt ? Date.parse(shared.lastSuccessAt) : null
+  const result = getPriceResultFromTimestamp(shared.priceUsd, asOf, now)
+
+  if (result) {
+    syncLocalCacheFromResult(result, retryAfterMs, shared.lastError)
+  } else if (retryAfterMs && retryAfterMs > now) {
+    bnbUsdCacheState.backoffUntil = retryAfterMs
+  }
+
+  return { shared, result, retryAfterMs }
+}
+
+function formatUsdDisplay(amountBnb: number, usdPerBnb: number | null) {
+  if (typeof usdPerBnb !== "number" || !Number.isFinite(usdPerBnb) || usdPerBnb <= 0) {
+    return DISPLAY_USD_UNAVAILABLE
+  }
+
+  return convertBnbToUsd(amountBnb, usdPerBnb).toFixed(2)
+}
+
 function computeBackoffMs(failureCount: number) {
   const multiplier = Math.max(0, failureCount - 1)
   return Math.min(BNB_USD_INITIAL_BACKOFF_MS * 2 ** multiplier, BNB_USD_MAX_BACKOFF_MS)
@@ -459,6 +526,10 @@ async function fetchLiveBnbUsdPrice(): Promise<PriceResult> {
 
   const now = Date.now()
   recordPriceFetchSuccess(price, now)
+  await setBnbUsdPriceCacheSuccess({
+    priceUsd: price,
+    fetchedAt: new Date(now),
+  }).catch(() => undefined)
   return buildPriceResult(price, "live", now, false)
 }
 
@@ -473,16 +544,42 @@ export async function getBnbUsdPriceSafe(): Promise<PriceResult> {
     return bnbUsdCacheState.inFlight
   }
 
+  const sharedState = await getSharedPriceResult(now)
+  if (sharedState.result?.source === "cache") {
+    return sharedState.result
+  }
+
+  if (sharedState.retryAfterMs && sharedState.retryAfterMs > now && sharedState.result) {
+    return sharedState.result
+  }
+
   if (bnbUsdCacheState.backoffUntil && now < bnbUsdCacheState.backoffUntil) {
-    return getStalePriceResult(now) ?? buildPriceResult(null, "unavailable", null, false)
+    return sharedState.result ?? getStalePriceResult(now) ?? buildPriceResult(null, "unavailable", null, false)
   }
 
   const inFlight = (async () => {
     try {
-      return await fetchLiveBnbUsdPrice()
+      const locked = await withBnbUsdPriceRefreshLock(async () => fetchLiveBnbUsdPrice())
+      if (locked.acquired) {
+        return locked.value
+      }
+
+      await sleep(350)
+      const refreshedShared = await getSharedPriceResult()
+      if (refreshedShared.result) {
+        return refreshedShared.result
+      }
+
+      return sharedState.result ?? getStalePriceResult() ?? buildPriceResult(null, "unavailable", null, false)
     } catch (error) {
+      const nextFailureCount = Math.max(1, (sharedState.shared?.failureCount ?? 0) + 1)
+      const retryAfter = new Date(Date.now() + computeBackoffMs(nextFailureCount))
       recordPriceFetchFailure(error)
-      return getStalePriceResult() ?? buildPriceResult(null, "unavailable", null, false)
+      await setBnbUsdPriceCacheFailure({
+        error: error instanceof Error ? error.message : String(error ?? "Unknown price fetch error"),
+        retryAfter,
+      }).catch(() => undefined)
+      return sharedState.result ?? getStalePriceResult() ?? buildPriceResult(null, "unavailable", null, false)
     } finally {
       bnbUsdCacheState.inFlight = null
     }

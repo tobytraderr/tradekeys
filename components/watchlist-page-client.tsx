@@ -88,7 +88,7 @@ function formatMarketUsd(value: number) {
 
 function formatQuoteUsd(value: number, quoteWei: string) {
   const hasLiveQuote = quoteWei !== "0"
-  if (!hasLiveQuote) {
+  if (!hasLiveQuote || !Number.isFinite(value)) {
     return "Unavailable"
   }
 

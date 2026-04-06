@@ -411,7 +411,11 @@ export function CreateTwinForm() {
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>Required USD (display only)</span>
                 <span className={`${styles.summaryValue} ${styles.quoteValue}`}>
-                  {quote ? formatUsd(Number(quote.requiredValueUsd)) : "--"}
+                  {quote
+                    ? Number.isFinite(Number(quote.requiredValueUsd))
+                      ? formatUsd(Number(quote.requiredValueUsd))
+                      : "Unavailable"
+                    : "--"}
                 </span>
               </div>
               <div className={styles.summaryRow}>

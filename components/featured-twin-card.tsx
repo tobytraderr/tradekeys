@@ -8,9 +8,10 @@ type Props = {
 }
 
 export function FeaturedTwinCard({ featured }: Props) {
+  const liveQuoteUsd = Number(featured.quote?.buyQuoteUsd)
   const quoteUsd = formatUsd(
-    featured.quote?.buyQuoteUsd
-      ? Number(featured.quote.buyQuoteUsd)
+    Number.isFinite(liveQuoteUsd) && liveQuoteUsd > 0
+      ? liveQuoteUsd
       : featured.twin.lastPriceUsd
   )
   const feeShare = featured.quote?.feeSharePct ?? "0.00"
