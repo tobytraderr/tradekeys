@@ -14,6 +14,8 @@ const FAILED_AUTH_WINDOW_MS = 5 * 60 * 1000
 const FAILED_AUTH_LIMIT = 10
 const ADMIN_REQUEST_WINDOW_MS = 60 * 1000
 const ADMIN_REQUEST_LIMIT = 120
+const PROBE_WINDOW_MS = 60 * 1000
+const PROBE_LIMIT = 20
 
 type RateLimitEntry = {
   count: number
@@ -23,6 +25,7 @@ type RateLimitEntry = {
 const globalState = globalThis as typeof globalThis & {
   __tradekeysAdminFailedAuthLimiter?: Map<string, RateLimitEntry>
   __tradekeysAdminRequestLimiter?: Map<string, RateLimitEntry>
+  __tradekeysProbeLimiter?: Map<string, RateLimitEntry>
 }
 
 const failedAuthLimiter =
@@ -32,6 +35,10 @@ const failedAuthLimiter =
 const requestLimiter =
   globalState.__tradekeysAdminRequestLimiter ??
   (globalState.__tradekeysAdminRequestLimiter = new Map<string, RateLimitEntry>())
+
+const probeLimiter =
+  globalState.__tradekeysProbeLimiter ??
+  (globalState.__tradekeysProbeLimiter = new Map<string, RateLimitEntry>())
 
 function getClientIp(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")
@@ -82,6 +89,16 @@ function tooManyRequestsResponse(resetAt: number) {
       },
     }
   )
+}
+
+function tooManyProbeRequestsResponse(resetAt: number) {
+  const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000))
+  return new NextResponse("Too many suspicious requests.", {
+    status: 429,
+    headers: {
+      "Retry-After": String(retryAfterSeconds),
+    },
+  })
 }
 
 function unauthorizedResponse(request: NextRequest) {
@@ -160,12 +177,76 @@ function getAccessTokenCandidate(request: NextRequest) {
   )
 }
 
+function isAdminRoute(pathname: string) {
+  return pathname.startsWith("/admin") || pathname.startsWith("/api/admin")
+}
+
+function isSuspiciousProbePath(pathname: string) {
+  const normalized = pathname.trim().toLowerCase()
+  if (!normalized || normalized === "/") {
+    return false
+  }
+
+  const exactMatches = new Set([
+    "/.env",
+    "/.git/config",
+    "/.git/heads/master",
+    "/wp-login.php",
+    "/xmlrpc.php",
+    "/wlwmanifest.xml",
+    "/phpmyadmin",
+    "/phpmyadmin/",
+    "/pma",
+    "/favicon.ico/.env",
+  ])
+
+  if (exactMatches.has(normalized)) {
+    return true
+  }
+
+  return [
+    /^\/wp-admin(?:\/|$)/,
+    /^\/wordpress(?:\/|$)/,
+    /^\/wp-content(?:\/|$)/,
+    /^\/wp-includes(?:\/|$)/,
+    /^\/(?:test|site|cms|wp1|wp2|media|sito|blog)\/wp-includes\/wlwmanifest\.xml$/,
+    /^\/\.github\/workflows\/secrets\.env$/,
+    /^\/(?:docker|kubernetes|production|config|secrets|vendor)(?:\/|$)/,
+    /^\/.*(?:^|\/)\.env(?:\.|$)/,
+    /^\/\.git(?:\/|$)/,
+    /^\/\.aws(?:\/|$)/,
+    /^\/boaform(?:\/|$)/,
+    /^\/cgi-bin(?:\/|$)/,
+  ].some((pattern) => pattern.test(normalized))
+}
+
 export function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const clientIp = getClientIp(request)
+
+  if (isSuspiciousProbePath(pathname)) {
+    const probeAttempt = consumeRateLimit(
+      probeLimiter,
+      `${clientIp ?? "unknown"}:probe`,
+      PROBE_LIMIT,
+      PROBE_WINDOW_MS
+    )
+
+    if (!probeAttempt.allowed) {
+      return tooManyProbeRequestsResponse(probeAttempt.resetAt)
+    }
+
+    return notFoundResponse(request)
+  }
+
+  if (!isAdminRoute(pathname)) {
+    return NextResponse.next()
+  }
+
   if (!isAdminConfigured()) {
     return notFoundResponse(request)
   }
 
-  const clientIp = getClientIp(request)
   if (!isAllowedAdminIp(clientIp)) {
     return forbiddenResponse(request, "This IP is not allowed to access the admin surface.")
   }
@@ -242,5 +323,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image).*)"],
 }

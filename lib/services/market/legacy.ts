@@ -160,6 +160,7 @@ type HomepageBaseData = {
 }
 
 const HOMEPAGE_CACHE_TTL_MS = 60_000
+const HOMEPAGE_STALE_SERVE_TTL_MS = 10 * 60_000
 const HOMEPAGE_RETRY_BASE_MS = 60_000
 const HOMEPAGE_RETRY_MAX_MS = 10 * 60_000
 const HOMEPAGE_GENERAL_RETRY_MS = 30_000
@@ -207,12 +208,20 @@ function isHomepageCacheFresh(lastSuccessAt: string | null | undefined) {
   return Boolean(lastSuccessAt && Date.now() - Date.parse(lastSuccessAt) < HOMEPAGE_CACHE_TTL_MS)
 }
 
+function canServeHomepageStale(lastSuccessAt: string | null | undefined) {
+  return Boolean(lastSuccessAt && Date.now() - Date.parse(lastSuccessAt) < HOMEPAGE_STALE_SERVE_TTL_MS)
+}
+
 function getCachedHomepageMessage(error: unknown) {
   if (isRateLimitError(error)) {
     return "Live market data is temporarily rate-limited. Showing the most recent cached snapshot."
   }
 
   return "Live market data refresh failed. Showing the most recent cached snapshot."
+}
+
+function getRefreshingHomepageMessage() {
+  return "Showing the most recent cached market snapshot while TradeKeys refreshes live data in the background."
 }
 
 function getHomepageFailureMessage(error: unknown) {
@@ -1104,6 +1113,50 @@ async function fetchBaseHomepageData(): Promise<HomepageBaseData> {
     outcome: "miss",
     ageMs: cached?.lastSuccessAt ? Date.now() - Date.parse(cached.lastSuccessAt) : undefined,
   })
+
+  if (cached?.snapshot && canServeHomepageStale(cached.lastSuccessAt)) {
+    if (!homepageBaseRefreshPromise) {
+      homepageBaseRefreshPromise = withOpsTrace({
+        name: "homepage_build",
+        dependency: "app",
+        task: async () => {
+          try {
+            const fresh = await fetchFreshHomepageBaseData()
+            await writeHomepageBaseCache(fresh)
+            recordCacheEvent({
+              cache: "homepage",
+              outcome: "refresh_success",
+            })
+            return fresh
+          } catch (error) {
+            console.error("[homepage] subgraph fetch failed:", error)
+            recordCacheEvent({
+              cache: "homepage",
+              outcome: "refresh_failure",
+              error,
+            })
+
+            const failureCount = Math.max(1, (cached.failureCount ?? 0) + 1)
+            await writeHomepageBaseFailure(error, failureCount)
+            return withHomepageStatus(cached.snapshot, getCachedHomepageMessage(error))
+          } finally {
+            homepageBaseRefreshPromise = null
+          }
+        },
+      })
+    }
+
+    recordCacheEvent({
+      cache: "homepage",
+      outcome: "stale_served",
+      ageMs: cached.lastSuccessAt ? Date.now() - Date.parse(cached.lastSuccessAt) : undefined,
+      error: "stale-while-refresh",
+    })
+    return withHomepageStatus(
+      cached.snapshot,
+      cached.lastError ? getCachedHomepageMessage(cached.lastError) : getRefreshingHomepageMessage()
+    )
+  }
 
   homepageBaseRefreshPromise = withOpsTrace({
     name: "homepage_build",

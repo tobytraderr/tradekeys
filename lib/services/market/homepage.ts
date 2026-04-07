@@ -26,6 +26,25 @@ import type {
   TwinSummary,
 } from "@/lib/types"
 
+const HOMEPAGE_PUBLIC_MAX_WAIT_MS = 3_000
+const HOMEPAGE_STALE_SERVE_TTL_MS = 10 * 60_000
+
+function buildUnavailableHomepageSnapshot(error: string): HomepageSnapshot {
+  return {
+    featuredCarousel: [],
+    latestTwins: [],
+    newTwins: [],
+    insights: [],
+    watchlist: [],
+    activity: [],
+    error,
+  }
+}
+
+function isRuntimeSnapshotServeable(generatedAt: string | null | undefined, ttlMs: number) {
+  return Boolean(generatedAt && Date.now() - Date.parse(generatedAt) < ttlMs)
+}
+
 function toHomepageSnapshot(state: MarketHomepageRuntimeState): HomepageSnapshot {
   return {
     featuredCarousel: state.featuredCarousel,
@@ -116,6 +135,24 @@ export async function getHomepageSnapshot(options?: {
     ageMs: stored?.generatedAt ? Date.now() - Date.parse(stored.generatedAt) : undefined,
   })
 
+  if (stored && isRuntimeSnapshotServeable(stored.generatedAt, HOMEPAGE_STALE_SERVE_TTL_MS)) {
+    void refreshHomepageRuntimeSnapshot().catch((error) => {
+      recordCacheEvent({
+        cache: "homepage",
+        outcome: "refresh_failure",
+        error,
+      })
+    })
+    recordCacheEvent({
+      cache: "homepage",
+      outcome: "stale_served",
+      ageMs: Date.now() - Date.parse(stored.generatedAt),
+      error: "stale-while-refresh",
+    })
+    const snapshot = toHomepageSnapshot(stored.snapshot)
+    return includeInsights ? snapshot : stripInsights(snapshot)
+  }
+
   try {
     const refreshed = await refreshHomepageRuntimeSnapshot()
     const snapshot = toHomepageSnapshot(refreshed)
@@ -160,6 +197,32 @@ export async function getHomepageSnapshot(options?: {
       activity: [],
       error: error instanceof Error ? error.message : "Market homepage snapshot unavailable.",
     }
+  }
+}
+
+export async function getHomepageSnapshotForPublicRequest(options?: {
+  includeInsights?: boolean
+  timeoutMs?: number
+}): Promise<HomepageSnapshot> {
+  const timeoutMs = Math.max(500, options?.timeoutMs ?? HOMEPAGE_PUBLIC_MAX_WAIT_MS)
+
+  try {
+    return await Promise.race([
+      getHomepageSnapshot({ includeInsights: options?.includeInsights }),
+      new Promise<HomepageSnapshot>((resolve) => {
+        setTimeout(() => {
+          resolve(
+            buildUnavailableHomepageSnapshot(
+              "Homepage refresh timed out. Retry shortly while TradeKeys keeps the market snapshot safe."
+            )
+          )
+        }, timeoutMs)
+      }),
+    ])
+  } catch (error) {
+    return buildUnavailableHomepageSnapshot(
+      error instanceof Error ? error.message : "Market homepage snapshot unavailable."
+    )
   }
 }
 

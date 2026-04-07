@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getHomepageSnapshot } from "@/lib/services/market/homepage"
+import { getHomepageSnapshotForPublicRequest } from "@/lib/services/market/homepage"
 import { recordApiEvent } from "@/lib/server/ops-observability"
 import { enforcePublicApiRateLimit } from "@/lib/server/public-api-guard"
 
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   }
 
   const startedAt = Date.now()
-  const snapshot = await getHomepageSnapshot({ includeInsights: false })
+  const snapshot = await getHomepageSnapshotForPublicRequest({ includeInsights: false })
   recordApiEvent({
     route: "/api/home",
     method: "GET",
