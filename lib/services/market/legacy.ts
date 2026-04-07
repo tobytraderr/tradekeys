@@ -1115,6 +1115,8 @@ async function fetchBaseHomepageData(): Promise<HomepageBaseData> {
   })
 
   if (cached?.snapshot && canServeHomepageStale(cached.lastSuccessAt)) {
+    const staleSnapshot = cached.snapshot
+
     if (!homepageBaseRefreshPromise) {
       homepageBaseRefreshPromise = withOpsTrace({
         name: "homepage_build",
@@ -1138,7 +1140,7 @@ async function fetchBaseHomepageData(): Promise<HomepageBaseData> {
 
             const failureCount = Math.max(1, (cached.failureCount ?? 0) + 1)
             await writeHomepageBaseFailure(error, failureCount)
-            return withHomepageStatus(cached.snapshot, getCachedHomepageMessage(error))
+            return withHomepageStatus(staleSnapshot, getCachedHomepageMessage(error))
           } finally {
             homepageBaseRefreshPromise = null
           }
@@ -1153,7 +1155,7 @@ async function fetchBaseHomepageData(): Promise<HomepageBaseData> {
       error: "stale-while-refresh",
     })
     return withHomepageStatus(
-      cached.snapshot,
+      staleSnapshot,
       cached.lastError ? getCachedHomepageMessage(cached.lastError) : getRefreshingHomepageMessage()
     )
   }
