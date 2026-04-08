@@ -165,6 +165,7 @@ const HOMEPAGE_RETRY_BASE_MS = 60_000
 const HOMEPAGE_RETRY_MAX_MS = 10 * 60_000
 const HOMEPAGE_GENERAL_RETRY_MS = 30_000
 const TWIN_DETAIL_CACHE_TTL_MS = 60_000
+const TWIN_DETAIL_STALE_SERVE_TTL_MS = 10 * 60_000
 
 type HomepageBaseCacheState = HomepageCacheEntry<HomepageBaseData>
 type TwinDetailCacheState = TwinDetailCacheEntry<TwinDetailSubgraphPayload>
@@ -377,6 +378,10 @@ function getTwinDetailCachedMessage(error: unknown) {
   return "Live twin market data refresh failed. Showing the most recent cached snapshot."
 }
 
+function getRefreshingTwinDetailMessage() {
+  return "Showing the most recent cached twin snapshot while TradeKeys refreshes live market detail in the background."
+}
+
 function getTwinDetailFailureMessage(error: unknown) {
   if (!getSubgraphUrl()) {
     return "Twin market data source is not configured. Set SUBGRAPH_URL and restart the server."
@@ -395,6 +400,8 @@ async function fetchCachedTwinDetailPayload(id: string): Promise<{
   unavailable?: boolean
 }> {
   const cached = await readTwinDetailCache(id)
+  const canServeStale =
+    Boolean(cached?.payload && cached.lastSuccessAt && Date.now() - Date.parse(cached.lastSuccessAt) < TWIN_DETAIL_STALE_SERVE_TTL_MS)
 
   if (cached?.payload && isHomepageCacheFresh(cached.lastSuccessAt)) {
     recordCacheEvent({
@@ -404,6 +411,54 @@ async function fetchCachedTwinDetailPayload(id: string): Promise<{
       ageMs: cached.lastSuccessAt ? Date.now() - Date.parse(cached.lastSuccessAt) : undefined,
     })
     return { payload: cached.payload }
+  }
+
+  if (cached?.payload && canServeStale) {
+    const stalePayload = cached.payload
+
+    if (!twinDetailRefreshPromises.get(id)) {
+      const refreshPromise = (async () => {
+        try {
+          const fresh = await fetchTwinDetailSubgraphData(id)
+          if (fresh?.digitalTwin) {
+            await writeTwinDetailCache(id, fresh)
+          }
+          recordCacheEvent({
+            cache: "twin-detail",
+            twinId: id,
+            outcome: "refresh_success",
+          })
+          return fresh
+        } catch (error) {
+          console.error(`[twin-detail] subgraph fetch failed for ${id}:`, error)
+          recordCacheEvent({
+            cache: "twin-detail",
+            twinId: id,
+            outcome: "refresh_failure",
+            error,
+          })
+          const failureCount = Math.max(1, (cached.failureCount ?? 0) + 1)
+          await writeTwinDetailCacheFailure(id, error, failureCount)
+          return stalePayload
+        } finally {
+          twinDetailRefreshPromises.delete(id)
+        }
+      })()
+
+      twinDetailRefreshPromises.set(id, refreshPromise)
+    }
+
+    recordCacheEvent({
+      cache: "twin-detail",
+      twinId: id,
+      outcome: "stale_served",
+      ageMs: cached.lastSuccessAt ? Date.now() - Date.parse(cached.lastSuccessAt) : undefined,
+      error: "stale-while-refresh",
+    })
+    return {
+      payload: stalePayload,
+      error: cached.lastError ? getTwinDetailCachedMessage(cached.lastError) : getRefreshingTwinDetailMessage(),
+    }
   }
 
   if (cached?.payload && hasActiveRetryWindow(cached.retryAfter)) {

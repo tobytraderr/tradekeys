@@ -261,7 +261,7 @@ export async function fetchTwinDetailSubgraphData(id: string) {
     id,
     tradesFirst: 20,
     holdersFirst: 20,
-    hourlyFirst: 720,
+    hourlyFirst: 168,
   })
 }
 

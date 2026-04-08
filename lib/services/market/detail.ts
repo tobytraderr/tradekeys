@@ -19,6 +19,8 @@ import { recordCacheEvent, withOpsTrace } from "@/lib/server/ops-observability"
 import * as legacy from "@/lib/services/market/legacy"
 import type { TwinDetailSnapshot, TwinSummary } from "@/lib/types"
 
+const TWIN_DETAIL_STALE_SERVE_TTL_MS = 10 * 60_000
+
 function buildTwinDetailRecord(
   twinId: string,
   snapshot: TwinDetailSnapshot
@@ -68,6 +70,10 @@ function withStaleDetailError(snapshot: TwinDetailSnapshot, error: unknown): Twi
   }
 }
 
+function isStoredTwinDetailServeable(generatedAt: string | null | undefined) {
+  return Boolean(generatedAt && Date.now() - Date.parse(generatedAt) < TWIN_DETAIL_STALE_SERVE_TTL_MS)
+}
+
 export async function getTwinDetailResult(id: string): Promise<{
   twin: TwinSummary | null
   error?: string
@@ -111,6 +117,28 @@ export async function getTwinDetailSnapshot(id: string): Promise<TwinDetailSnaps
     outcome: "miss",
     ageMs: stored?.generatedAt ? Date.now() - Date.parse(stored.generatedAt) : undefined,
   })
+
+  if (stored?.snapshot && isStoredTwinDetailServeable(stored.generatedAt)) {
+    void refreshTwinDetailRuntimeSnapshot(id).catch((error) => {
+      recordCacheEvent({
+        cache: "twin-detail",
+        twinId: id,
+        outcome: "refresh_failure",
+        error,
+      })
+    })
+    recordCacheEvent({
+      cache: "twin-detail",
+      twinId: id,
+      outcome: "stale_served",
+      ageMs: stored.generatedAt ? Date.now() - Date.parse(stored.generatedAt) : undefined,
+      error: "stale-while-refresh",
+    })
+    return withStaleDetailError(
+      stored.snapshot,
+      "Showing the most recent cached twin detail snapshot while TradeKeys refreshes live market detail in the background."
+    )
+  }
 
   try {
     const refreshed = await refreshTwinDetailRuntimeSnapshot(id)
